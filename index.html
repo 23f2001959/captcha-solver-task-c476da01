@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Captcha Solver</title>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js"></script>
+</head>
+<body>
+  <h1>Captcha Solver</h1>
+  
+  <input type="file" accept="image/*" id="image-input">
+  <button onclick="solveCaptcha()">Solve Captcha</button>
+  
+  <div id="captcha-text"></div>
+  
+  <script>
+    async function solveCaptcha() {
+      const imageInput = document.getElementById("image-input");
+      const imageFile = imageInput.files[0];
+      
+      const reader = new FileReader();
+      reader.readAsDataURL(imageFile);
+      reader.onload = async function () {
+        const base64Image = reader.result.split(",")[1];
+        
+        const { createWorker } = Tesseract;
+        const worker = createWorker();
+        
+        console.log("Recognizing captcha...");
+        await worker.load();
+        await worker.loadLanguage('eng');
+        await worker.initialize('eng');
+        const { data: { text } } = await worker.recognize(base64Image);
+        console.log("Captcha recognized:", text);
+        
+        document.getElementById("captcha-text").innerText = text;
+        
+        await worker.terminate();
+      };
+    }
+  </script>
+</body>
+</html>
